@@ -1,115 +1,60 @@
 package db
 
 import (
-	"database/sql"
 	"errors"
-	"fmt"
 
-	"github.com/google/uuid"
-	"github.com/iamrz1/xm-exercise/internal/models"
+	"gorm.io/gorm"
+	"xm-exercise/pkg/models"
 )
 
 // CompanyRepository handles database operations for companies
 type CompanyRepository struct {
-	db *PostgresDB
+	db *Database
 }
 
 // NewCompanyRepository creates a new company repository
-func NewCompanyRepository(db *PostgresDB) *CompanyRepository {
+func NewCompanyRepository(db *Database) *CompanyRepository {
 	return &CompanyRepository{db: db}
 }
 
 // Create inserts a new company into the database
-func (r *CompanyRepository) Create(company models.Company) error {
-	query := `
-		INSERT INTO companies (id, name, description, employee_count, registered, type, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-	`
-
-	_, err := r.db.Exec(
-		query,
-		company.ID,
-		company.Name,
-		company.Description,
-		company.EmployeeCount,
-		company.Registered,
-		company.Type,
-		company.CreatedAt,
-		company.UpdatedAt,
-	)
-
-	if err != nil {
-		return fmt.Errorf("error creating company: %w", err)
+func (r *CompanyRepository) Create(company *models.Company) error {
+	result := r.db.Create(company)
+	if result.Error != nil {
+		return result.Error
 	}
-
 	return nil
 }
 
 // GetByID retrieves a company by its ID
-func (r *CompanyRepository) GetByID(id uuid.UUID) (*models.Company, error) {
-	query := `
-		SELECT id, name, description, employee_count, registered, type, created_at, updated_at
-		FROM companies
-		WHERE id = $1
-	`
-
+func (r *CompanyRepository) GetByID(id string) (*models.Company, error) {
 	var company models.Company
-	var description sql.NullString
-
-	err := r.db.QueryRow(query, id).Scan(
-		&company.ID,
-		&company.Name,
-		&description,
-		&company.EmployeeCount,
-		&company.Registered,
-		&company.Type,
-		&company.CreatedAt,
-		&company.UpdatedAt,
-	)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
+	result := r.db.First(&company, "id = ?", id)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, errors.New("company not found")
 		}
-		return nil, fmt.Errorf("error getting company: %w", err)
+		return nil, result.Error
 	}
-
-	if description.Valid {
-		company.Description = &description.String
-	}
-
 	return &company, nil
 }
 
 // Update updates an existing company
-func (r *CompanyRepository) Update(company models.Company) error {
-	query := `
-		UPDATE companies
-		SET name = $2, description = $3, employee_count = $4, registered = $5, type = $6, updated_at = $7
-		WHERE id = $1
-	`
+func (r *CompanyRepository) Update(company *models.Company) error {
+	result := r.db.Model(&company).Updates(company)
+	//result := r.db.Model(&company).Updates(models.Company{
+	//	Name:          company.Name,
+	//	Description:   company.Description,
+	//	EmployeeCount: company.EmployeeCount,
+	//	Registered:    company.Registered,
+	//	Type:          company.Type,
+	//})
 
-	result, err := r.db.Exec(
-		query,
-		company.ID,
-		company.Name,
-		company.Description,
-		company.EmployeeCount,
-		company.Registered,
-		company.Type,
-		company.UpdatedAt,
-	)
-
-	if err != nil {
-		return fmt.Errorf("error updating company: %w", err)
+	if result.Error != nil {
+		return result.Error
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("error checking rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
+	if result.RowsAffected == 0 {
 		return errors.New("company not found")
 	}
 
@@ -117,20 +62,13 @@ func (r *CompanyRepository) Update(company models.Company) error {
 }
 
 // Delete removes a company by its ID
-func (r *CompanyRepository) Delete(id uuid.UUID) error {
-	query := "DELETE FROM companies WHERE id = $1"
-
-	result, err := r.db.Exec(query, id)
-	if err != nil {
-		return fmt.Errorf("error deleting company: %w", err)
+func (r *CompanyRepository) Delete(id string) error {
+	result := r.db.Delete(&models.Company{}, "id = ?", id)
+	if result.Error != nil {
+		return result.Error
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("error checking rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
+	if result.RowsAffected == 0 {
 		return errors.New("company not found")
 	}
 
@@ -138,19 +76,13 @@ func (r *CompanyRepository) Delete(id uuid.UUID) error {
 }
 
 // ExistsByName checks if a company with the given name exists
-func (r *CompanyRepository) ExistsByName(name string, excludeID *uuid.UUID) (bool, error) {
-	query := "SELECT COUNT(*) FROM companies WHERE name = $1"
-	args := []interface{}{name}
+func (r *CompanyRepository) ExistsByName(name string) (bool, error) {
+	var count int64
+	query := r.db.Model(&models.Company{}).Where("name = ?", name)
 
-	if excludeID != nil {
-		query += " AND id != $2"
-		args = append(args, *excludeID)
-	}
-
-	var count int
-	err := r.db.QueryRow(query, args...).Scan(&count)
+	err := query.Count(&count).Error
 	if err != nil {
-		return false, fmt.Errorf("error checking if company exists: %w", err)
+		return false, err
 	}
 
 	return count > 0, nil

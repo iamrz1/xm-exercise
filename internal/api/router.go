@@ -3,51 +3,60 @@ package api
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/iamrz1/xm-exercise/internal/api/handlers"
-	"github.com/iamrz1/xm-exercise/internal/api/middleware"
-	"github.com/iamrz1/xm-exercise/internal/auth"
-	"github.com/iamrz1/xm-exercise/internal/config"
-	"github.com/iamrz1/xm-exercise/internal/db"
-	"github.com/iamrz1/xm-exercise/internal/events"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
+	"xm-exercise/internal/api/handlers"
+	appMiddleware "xm-exercise/internal/api/middleware"
+	"xm-exercise/internal/auth"
+	"xm-exercise/internal/config"
+	"xm-exercise/internal/db"
+	_ "xm-exercise/internal/docs"
+	"xm-exercise/internal/events"
+	"xm-exercise/internal/logger"
 )
 
 // NewRouter creates a new router with all application routes
-func NewRouter(database *db.PostgresDB, producer *events.KafkaProducer, cfg *config.Config) http.Handler {
-	r := mux.NewRouter()
+func NewRouter(database *db.Database, producer *events.KafkaProducer, cfg *config.Config) http.Handler {
+	r := chi.NewRouter()
 
-	// Initialize services
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.StripSlashes)
+
 	jwtService := auth.NewJWTService(cfg.JWTSecret, cfg.JWTExpiration)
 
-	// Initialize repositories
 	companyRepo := db.NewCompanyRepository(database)
 	userRepo := db.NewUserRepository(database)
 
-	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(userRepo, jwtService)
 	companyHandler := handlers.NewCompanyHandler(companyRepo, producer)
 
-	// Middleware
-	authMiddleware := middleware.NewAuthMiddleware(jwtService)
+	authMiddleware := appMiddleware.NewAuthMiddleware(jwtService)
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(appMiddleware.LoggerMiddleware)
+		r.Post("/auth/register", authHandler.Register)
+		r.Post("/auth/login", authHandler.Login)
 
-	// Auth routes
-	r.HandleFunc("/api/v1/auth/register", authHandler.Register).Methods(http.MethodPost)
-	r.HandleFunc("/api/v1/auth/login", authHandler.Login).Methods(http.MethodPost)
+		cr := chi.NewRouter()
+		cr.Get("/{id}", companyHandler.Get)
+		cr.With(authMiddleware.Authenticate).Post("/", companyHandler.Create)
+		cr.With(authMiddleware.Authenticate).Patch("/{id}", companyHandler.Patch)
+		cr.With(authMiddleware.Authenticate).Delete("/{id}", companyHandler.Delete)
+		r.Mount("/companies", cr)
+	})
 
-	// Company routes
-	companies := r.PathPrefix("/api/v1/companies").Subrouter()
-	companies.Use(authMiddleware.Authenticate)
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+		httpSwagger.DeepLinking(true),
+	))
 
-	companies.HandleFunc("", companyHandler.Create).Methods(http.MethodPost)
-	companies.HandleFunc("/{id}", companyHandler.Get).Methods(http.MethodGet)
-	companies.HandleFunc("/{id}", companyHandler.Patch).Methods(http.MethodPatch)
-	companies.HandleFunc("/{id}", companyHandler.Delete).Methods(http.MethodDelete)
-
-	// Health check
-	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
-	}).Methods(http.MethodGet)
+	})
 
+	logger.Info("API routes initialized")
 	return r
 }

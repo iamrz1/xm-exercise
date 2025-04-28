@@ -1,0 +1,346 @@
+basePath: /api/v1
+definitions:
+  handlers.TokenResponse:
+    properties:
+      token:
+        description: JWT token for authentication
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      user_id:
+        description: User ID associated with the token
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    type: object
+  models.Company:
+    description: Company model with all details
+    properties:
+      created_at:
+        description: When the company record was created
+        example: "2023-01-01T12:00:00Z"
+        type: string
+      description:
+        description: Optional description of the company (max 3000 characters)
+        example: Leading provider of widgets
+        type: string
+      employee_count:
+        description: Number of employees in the company
+        example: 42
+        type: integer
+      id:
+        description: Unique identifier for the company
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      name:
+        description: Name of the company (must be unique, max 15 characters)
+        example: Acme Corp
+        type: string
+      registered:
+        description: Whether the company is officially registered
+        example: true
+        type: boolean
+      type:
+        allOf:
+        - $ref: '#/definitions/models.CompanyType'
+        description: 'Type of company: Corporations, NonProfit, Cooperative, or Sole
+          Proprietorship'
+        example: Corporations
+      updated_at:
+        description: When the company record was last updated
+        example: "2023-01-02T12:00:00Z"
+        type: string
+    type: object
+  models.CompanyType:
+    description: Type of company
+    enum:
+    - Corporations
+    - NonProfit
+    - Cooperative
+    - Sole Proprietorship
+    type: string
+    x-enum-varnames:
+    - TypeCorporation
+    - TypeNonProfit
+    - TypeCooperative
+    - TypeSoleProprietor
+  models.UserLogin:
+    description: User credentials for registration
+    properties:
+      email:
+        description: Email address (required for registration)
+        example: john@example.com
+        type: string
+      password:
+        description: Password (at least 8 characters)
+        example: securepassword123
+        type: string
+    type: object
+  models.UserRegistration:
+    description: User credentials for registration
+    properties:
+      email:
+        description: Email address (required for registration)
+        example: john@example.com
+        type: string
+      name:
+        description: Name for login (at least 3 characters)
+        example: John Doe
+        type: string
+      password:
+        description: Password (at least 8 characters)
+        example: securepassword123
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: my.name.in.lower.case@gmail.com
+    name: Rezoan Tamal
+  description: A company management service API
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Company Management API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login with username and password and return a JWT token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User logged in successfully
+          schema:
+            $ref: '#/definitions/handlers.TokenResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Login a user
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user and return a JWT token
+      parameters:
+      - description: User registration data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserRegistration'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User registered successfully
+          schema:
+            $ref: '#/definitions/handlers.TokenResponse'
+        "400":
+          description: Invalid request body or validation error
+          schema:
+            type: string
+        "409":
+          description: Name or email already taken
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Register a new user
+      tags:
+      - auth
+  /companies:
+    post:
+      consumes:
+      - application/json
+      description: Create a new company with the provided details. Requires Authorization
+        header with Bearer token.
+      parameters:
+      - description: Company details
+        in: body
+        name: company
+        required: true
+        schema:
+          $ref: '#/definitions/models.Company'
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Company created successfully
+          schema:
+            $ref: '#/definitions/models.Company'
+        "400":
+          description: Invalid request body or validation error
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "409":
+          description: Company name already exists
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - Bearer: []
+      summary: Create a new company
+      tags:
+      - companies
+  /companies/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a company by its ID
+      parameters:
+      - description: Company ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Company deleted successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid company ID
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Company not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - Bearer: []
+      summary: Delete a company
+      tags:
+      - companies
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a company by its ID
+      parameters:
+      - description: Company ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Company found
+          schema:
+            $ref: '#/definitions/models.Company'
+        "400":
+          description: Invalid company ID
+          schema:
+            type: string
+        "404":
+          description: Company not found
+          schema:
+            type: string
+      security:
+      - Bearer: []
+      summary: Get a company by ID
+      tags:
+      - companies
+    patch:
+      consumes:
+      - application/json
+      description: Update specific fields of a company
+      parameters:
+      - description: Company ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: company
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Company updated successfully
+          schema:
+            $ref: '#/definitions/models.Company'
+        "400":
+          description: Invalid request body or validation error
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Company not found
+          schema:
+            type: string
+        "409":
+          description: Company name already exists
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - Bearer: []
+      summary: Update a company
+      tags:
+      - companies
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and the JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

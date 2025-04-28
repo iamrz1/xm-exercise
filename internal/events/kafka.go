@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/iamrz1/xm-exercise/internal/models"
 	"github.com/segmentio/kafka-go"
+	"xm-exercise/pkg/models"
 )
 
 const (
@@ -29,13 +29,13 @@ type KafkaProducer struct {
 }
 
 // NewKafkaProducer creates a new Kafka producer
-func NewKafkaProducer(brokers []string) (*KafkaProducer, error) {
+func NewKafkaProducer(brokers []string) *KafkaProducer {
 	writer := &kafka.Writer{
 		Addr:     kafka.TCP(brokers...),
 		Balancer: &kafka.LeastBytes{},
 	}
 
-	return &KafkaProducer{writer: writer}, nil
+	return &KafkaProducer{writer: writer}
 }
 
 // PublishCompanyCreated publishes a company created event
@@ -44,7 +44,7 @@ func (p *KafkaProducer) PublishCompanyCreated(company models.Company) error {
 }
 
 // PublishCompanyUpdated publishes a company updated event
-func (p *KafkaProducer) PublishCompanyUpdated(company models.Company) error {
+func (p *KafkaProducer) PublishCompanyUpdated(company *models.Company) error {
 	return p.publishEvent(TopicCompanyUpdated, "company.updated", company)
 }
 

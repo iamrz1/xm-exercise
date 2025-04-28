@@ -1,30 +1,26 @@
-FROM golang:1.21-alpine AS builder
+FROM golang:1.23-alpine AS builder
+ENV GO111MODULE=on
+RUN mkdir /tmpdir
+WORKDIR  /tmpdir
 
-WORKDIR /app
+# Install golangci-lint
+RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.5
 
-# Copy go mod and sum files
-COPY go.mod go.sum ./
-
-# Download dependencies
+COPY . .
 RUN go mod download
 
-# Copy source code
-COPY . .
+# Run linter
+RUN golangci-lint run --timeout=5m
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o /company-service ./cmd/server
+RUN CGO_ENABLED=0 go build -o company
 
-# Use a small alpine image
-FROM alpine:3.18
+# Defining App image
+FROM alpine:latest
+RUN apk add --no-cache --update ca-certificates
 
-WORKDIR /
+WORKDIR /app
+# Copy App binary to image
+COPY --from=builder /tmpdir/company /app/
+EXPOSE 8080
 
-# Copy the binary from builder
-COPY --from=builder /company-service /company-service
-
-# Create a non-root user
-RUN adduser -D -g '' appuser
-USER appuser
-
-# Run the application
-ENTRYPOINT ["/company-service"] 
+ENTRYPOINT ["./company"]
