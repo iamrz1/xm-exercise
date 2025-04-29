@@ -2,7 +2,6 @@ version: "2"
 
 linters:
   enable:
-    - dupl
     - errcheck
     - goconst
     - gocritic

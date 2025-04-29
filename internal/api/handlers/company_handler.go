@@ -7,12 +7,12 @@ import (
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
-	"xm-exercise/internal/utils"
 
 	"xm-exercise/internal/api/middleware"
 	"xm-exercise/internal/db"
 	"xm-exercise/internal/events"
 	"xm-exercise/internal/logger"
+	"xm-exercise/internal/utils"
 	"xm-exercise/pkg/models"
 )
 

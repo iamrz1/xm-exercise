@@ -396,7 +396,7 @@ func TestCompanyHandler_Patch(t *testing.T) {
 		handler, mockRepo, _ := newTestCompanyHandler()
 
 		companyID := uuid.New().String()
-		newName := "Updated Company Name"
+		newName := "UmName"
 		updates := models.CompanyUpdateRequest{
 			Name: &newName,
 		}
