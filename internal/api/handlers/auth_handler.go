@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
+
 	"xm-exercise/internal/auth"
 	"xm-exercise/internal/db"
 	"xm-exercise/internal/logger"
@@ -35,7 +36,7 @@ func NewAuthHandler(userRepo *db.UserRepository, jwtService *auth.JWTService) *A
 // @Accept json
 // @Produce json
 // @Param user body models.UserRegistration true "User registration data"
-// @Success 200 {object} TokenResponse "User registered successfully"
+// @Success 200 {object} models.TokenResponse "User registered successfully"
 // @Failure 400 {string} string "Invalid request body or validation error"
 // @Failure 409 {string} string "Name or email already taken"
 // @Failure 500 {string} string "Internal server error"
@@ -109,7 +110,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param credentials body models.UserLogin true "Login credentials"
-// @Success 200 {object} TokenResponse "User logged in successfully"
+// @Success 200 {object} models.TokenResponse "User logged in successfully"
 // @Failure 400 {string} string "Invalid request body"
 // @Failure 401 {string} string "Invalid credentials"
 // @Failure 500 {string} string "Internal server error"

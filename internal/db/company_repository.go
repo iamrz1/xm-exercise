@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"gorm.io/gorm"
+
 	"xm-exercise/pkg/models"
 )
 
@@ -42,13 +43,6 @@ func (r *CompanyRepository) GetByID(id string) (*models.Company, error) {
 // Update updates an existing company
 func (r *CompanyRepository) Update(company *models.Company) error {
 	result := r.db.Model(&company).Updates(company)
-	//result := r.db.Model(&company).Updates(models.Company{
-	//	Name:          company.Name,
-	//	Description:   company.Description,
-	//	EmployeeCount: company.EmployeeCount,
-	//	Registered:    company.Registered,
-	//	Type:          company.Type,
-	//})
 
 	if result.Error != nil {
 		return result.Error

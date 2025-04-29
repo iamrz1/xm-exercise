@@ -51,7 +51,7 @@ const docTemplate = `{
                     "200": {
                         "description": "User logged in successfully",
                         "schema": {
-                            "$ref": "#/definitions/handlers.TokenResponse"
+                            "$ref": "#/definitions/models.TokenResponse"
                         }
                     },
                     "400": {
@@ -103,7 +103,7 @@ const docTemplate = `{
                     "200": {
                         "description": "User registered successfully",
                         "schema": {
-                            "$ref": "#/definitions/handlers.TokenResponse"
+                            "$ref": "#/definitions/models.TokenResponse"
                         }
                     },
                     "400": {
@@ -134,7 +134,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Create a new company with the provided details. Requires Authorization header with Bearer token.",
+                "description": "Create a new company with the provided details.",
                 "consumes": [
                     "application/json"
                 ],
@@ -152,7 +152,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Company"
+                            "$ref": "#/definitions/models.CompanyCreateRequest"
                         }
                     },
                     {
@@ -167,7 +167,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Company created successfully",
                         "schema": {
-                            "$ref": "#/definitions/models.Company"
+                            "$ref": "#/definitions/models.CompanyResponse"
                         }
                     },
                     "400": {
@@ -218,6 +218,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "format": "uuid",
                         "description": "Company ID",
                         "name": "id",
@@ -229,7 +236,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Company found",
                         "schema": {
-                            "$ref": "#/definitions/models.Company"
+                            "$ref": "#/definitions/models.CompanyResponse"
                         }
                     },
                     "400": {
@@ -346,7 +353,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Company updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/models.Company"
+                            "$ref": "#/definitions/models.CompanyUpdateRequest"
                         }
                     },
                     "400": {
@@ -384,57 +391,64 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handlers.TokenResponse": {
+        "models.CompanyCreateRequest": {
+            "description": "Contains details to successfully create a Company",
             "type": "object",
             "properties": {
-                "token": {
-                    "description": "JWT token for authentication",
-                    "type": "string",
-                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                },
-                "user_id": {
-                    "description": "User ID associated with the token",
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                }
-            }
-        },
-        "models.Company": {
-            "description": "Company model with all details",
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "description": "When the company record was created",
-                    "type": "string",
-                    "example": "2023-01-01T12:00:00Z"
-                },
                 "description": {
-                    "description": "Optional description of the company (max 3000 characters)",
                     "type": "string",
                     "example": "Leading provider of widgets"
                 },
                 "employee_count": {
-                    "description": "Number of employees in the company",
                     "type": "integer",
                     "example": 42
                 },
-                "id": {
-                    "description": "Unique identifier for the company",
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
                 "name": {
-                    "description": "Name of the company (must be unique, max 15 characters)",
                     "type": "string",
                     "example": "Acme Corp"
                 },
                 "registered": {
-                    "description": "Whether the company is officially registered",
                     "type": "boolean",
                     "example": true
                 },
                 "type": {
-                    "description": "Type of company: Corporations, NonProfit, Cooperative, or Sole Proprietorship",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.CompanyType"
+                        }
+                    ],
+                    "example": "Corporations"
+                }
+            }
+        },
+        "models.CompanyResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "05-04-2013"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Leading provider of widgets"
+                },
+                "employee_count": {
+                    "type": "integer",
+                    "example": 42
+                },
+                "id": {
+                    "type": "string",
+                    "example": "df45-adf32.....e-358dc"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Acme Corp"
+                },
+                "registered": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "type": {
                     "allOf": [
                         {
                             "$ref": "#/definitions/models.CompanyType"
@@ -443,9 +457,8 @@ const docTemplate = `{
                     "example": "Corporations"
                 },
                 "updated_at": {
-                    "description": "When the company record was last updated",
                     "type": "string",
-                    "example": "2023-01-02T12:00:00Z"
+                    "example": "05-04-2013"
                 }
             }
         },
@@ -465,17 +478,54 @@ const docTemplate = `{
                 "TypeSoleProprietor"
             ]
         },
+        "models.CompanyUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Leading provider of widgets"
+                },
+                "employee_count": {
+                    "type": "integer",
+                    "example": 42
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Acme Corp"
+                },
+                "registered": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.CompanyType"
+                        }
+                    ],
+                    "example": "Corporations"
+                }
+            }
+        },
+        "models.TokenResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "description": "JWT token for authentication",
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+            }
+        },
         "models.UserLogin": {
             "description": "User credentials for registration",
             "type": "object",
             "properties": {
                 "email": {
-                    "description": "Email address (required for registration)",
                     "type": "string",
                     "example": "john@example.com"
                 },
                 "password": {
-                    "description": "Password (at least 8 characters)",
                     "type": "string",
                     "example": "securepassword123"
                 }
@@ -486,17 +536,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "email": {
-                    "description": "Email address (required for registration)",
                     "type": "string",
                     "example": "john@example.com"
                 },
                 "name": {
-                    "description": "Name for login (at least 3 characters)",
                     "type": "string",
                     "example": "John Doe"
                 },
                 "password": {
-                    "description": "Password (at least 8 characters)",
                     "type": "string",
                     "example": "securepassword123"
                 }

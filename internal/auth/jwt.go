@@ -55,7 +55,6 @@ func (s *JWTService) ValidateToken(tokenString string) (*JWTClaims, error) {
 		}
 		return s.secretKey, nil
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("error parsing token: %w", err)
 	}

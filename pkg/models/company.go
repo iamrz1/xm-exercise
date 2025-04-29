@@ -34,3 +34,16 @@ type Company struct {
 func (c *Company) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
+
+func (c *Company) ToResponse() *CompanyResponse {
+	return &CompanyResponse{
+		ID:            c.ID,
+		Name:          c.Name,
+		Description:   c.Description,
+		EmployeeCount: c.EmployeeCount,
+		Registered:    c.Registered,
+		Type:          c.Type,
+		CreatedAt:     c.CreatedAt,
+		UpdatedAt:     c.UpdatedAt,
+	}
+}

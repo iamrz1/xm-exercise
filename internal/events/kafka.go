@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/segmentio/kafka-go"
+
 	"xm-exercise/pkg/models"
 )
 
@@ -72,7 +73,6 @@ func (p *KafkaProducer) publishEvent(topic, eventType string, data interface{}) 
 			Value: value,
 		},
 	)
-
 	if err != nil {
 		return fmt.Errorf("error publishing event to Kafka: %w", err)
 	}

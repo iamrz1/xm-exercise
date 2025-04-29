@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+
 	"xm-exercise/internal/api/middleware"
 	"xm-exercise/internal/db"
 	"xm-exercise/internal/events"
@@ -31,7 +32,7 @@ func NewCompanyHandler(companyRepo *db.CompanyRepository, producer *events.Kafka
 
 // Create godoc
 // @Summary Create a new company
-// @Description Create a new company with the provided details. Requires Authorization header with Bearer token.
+// @Description Create a new company with the provided details.
 // @Tags companies
 // @Accept json
 // @Produce json
@@ -130,16 +131,7 @@ func (h *CompanyHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
-	if err = json.NewEncoder(w).Encode(models.CompanyResponse{
-		ID:            company.ID,
-		Name:          company.Name,
-		Description:   company.Description,
-		EmployeeCount: company.EmployeeCount,
-		Registered:    company.Registered,
-		Type:          company.Type,
-		CreatedAt:     company.CreatedAt,
-		UpdatedAt:     company.UpdatedAt,
-	}); err != nil {
+	if err = json.NewEncoder(w).Encode(company.ToResponse()); err != nil {
 		log.Error("Failed to encode response data",
 			zap.Error(err),
 		)
@@ -170,16 +162,7 @@ func (h *CompanyHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(models.CompanyResponse{
-		ID:            company.ID,
-		Name:          company.Name,
-		Description:   company.Description,
-		EmployeeCount: company.EmployeeCount,
-		Registered:    company.Registered,
-		Type:          company.Type,
-		CreatedAt:     company.CreatedAt,
-		UpdatedAt:     company.UpdatedAt,
-	}); err != nil {
+	if err = json.NewEncoder(w).Encode(company.ToResponse()); err != nil {
 		log.Error("Failed to encode response data",
 			zap.Error(err),
 		)
@@ -194,7 +177,7 @@ func (h *CompanyHandler) Get(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param id path string true "Company ID" format(uuid)
 // @Param company body object true "Fields to update"
-// @Success 200 {object} models.CompanyUpdate "Company updated successfully"
+// @Success 200 {object} models.CompanyUpdateRequest "Company updated successfully"
 // @Failure 400 {string} string "Invalid request body or validation error"
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {string} string "Company not found"
@@ -281,16 +264,7 @@ func (h *CompanyHandler) Patch(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	w.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(models.CompanyResponse{
-		ID:            existingCompany.ID,
-		Name:          existingCompany.Name,
-		Description:   existingCompany.Description,
-		EmployeeCount: existingCompany.EmployeeCount,
-		Registered:    existingCompany.Registered,
-		Type:          existingCompany.Type,
-		CreatedAt:     existingCompany.CreatedAt,
-		UpdatedAt:     existingCompany.UpdatedAt,
-	}); err != nil {
+	if err = json.NewEncoder(w).Encode(existingCompany.ToResponse()); err != nil {
 		log.Error("Failed to encode response data",
 			zap.Error(err),
 		)
@@ -347,19 +321,8 @@ func (h *CompanyHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	w.WriteHeader(http.StatusNoContent)
-
 	w.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(models.CompanyResponse{
-		ID:            existingCompany.ID,
-		Name:          existingCompany.Name,
-		Description:   existingCompany.Description,
-		EmployeeCount: existingCompany.EmployeeCount,
-		Registered:    existingCompany.Registered,
-		Type:          existingCompany.Type,
-		CreatedAt:     existingCompany.CreatedAt,
-		UpdatedAt:     existingCompany.UpdatedAt,
-	}); err != nil {
+	if err = json.NewEncoder(w).Encode(existingCompany.ToResponse()); err != nil {
 		log.Error("Failed to encode response data",
 			zap.Error(err),
 		)

@@ -1,52 +1,51 @@
 basePath: /api/v1
 definitions:
-  handlers.TokenResponse:
+  models.CompanyCreateRequest:
+    description: Contains details to successfully create a Company
     properties:
-      token:
-        description: JWT token for authentication
-        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        type: string
-      user_id:
-        description: User ID associated with the token
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-    type: object
-  models.Company:
-    description: Company model with all details
-    properties:
-      created_at:
-        description: When the company record was created
-        example: "2023-01-01T12:00:00Z"
-        type: string
       description:
-        description: Optional description of the company (max 3000 characters)
         example: Leading provider of widgets
         type: string
       employee_count:
-        description: Number of employees in the company
         example: 42
         type: integer
-      id:
-        description: Unique identifier for the company
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
       name:
-        description: Name of the company (must be unique, max 15 characters)
         example: Acme Corp
         type: string
       registered:
-        description: Whether the company is officially registered
         example: true
         type: boolean
       type:
         allOf:
         - $ref: '#/definitions/models.CompanyType'
-        description: 'Type of company: Corporations, NonProfit, Cooperative, or Sole
-          Proprietorship'
+        example: Corporations
+    type: object
+  models.CompanyResponse:
+    properties:
+      created_at:
+        example: 05-04-2013
+        type: string
+      description:
+        example: Leading provider of widgets
+        type: string
+      employee_count:
+        example: 42
+        type: integer
+      id:
+        example: df45-adf32.....e-358dc
+        type: string
+      name:
+        example: Acme Corp
+        type: string
+      registered:
+        example: true
+        type: boolean
+      type:
+        allOf:
+        - $ref: '#/definitions/models.CompanyType'
         example: Corporations
       updated_at:
-        description: When the company record was last updated
-        example: "2023-01-02T12:00:00Z"
+        example: 05-04-2013
         type: string
     type: object
   models.CompanyType:
@@ -62,15 +61,39 @@ definitions:
     - TypeNonProfit
     - TypeCooperative
     - TypeSoleProprietor
+  models.CompanyUpdateRequest:
+    properties:
+      description:
+        example: Leading provider of widgets
+        type: string
+      employee_count:
+        example: 42
+        type: integer
+      name:
+        example: Acme Corp
+        type: string
+      registered:
+        example: true
+        type: boolean
+      type:
+        allOf:
+        - $ref: '#/definitions/models.CompanyType'
+        example: Corporations
+    type: object
+  models.TokenResponse:
+    properties:
+      token:
+        description: JWT token for authentication
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
   models.UserLogin:
     description: User credentials for registration
     properties:
       email:
-        description: Email address (required for registration)
         example: john@example.com
         type: string
       password:
-        description: Password (at least 8 characters)
         example: securepassword123
         type: string
     type: object
@@ -78,15 +101,12 @@ definitions:
     description: User credentials for registration
     properties:
       email:
-        description: Email address (required for registration)
         example: john@example.com
         type: string
       name:
-        description: Name for login (at least 3 characters)
         example: John Doe
         type: string
       password:
-        description: Password (at least 8 characters)
         example: securepassword123
         type: string
     type: object
@@ -121,7 +141,7 @@ paths:
         "200":
           description: User logged in successfully
           schema:
-            $ref: '#/definitions/handlers.TokenResponse'
+            $ref: '#/definitions/models.TokenResponse'
         "400":
           description: Invalid request body
           schema:
@@ -155,7 +175,7 @@ paths:
         "200":
           description: User registered successfully
           schema:
-            $ref: '#/definitions/handlers.TokenResponse'
+            $ref: '#/definitions/models.TokenResponse'
         "400":
           description: Invalid request body or validation error
           schema:
@@ -175,15 +195,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new company with the provided details. Requires Authorization
-        header with Bearer token.
+      description: Create a new company with the provided details.
       parameters:
       - description: Company details
         in: body
         name: company
         required: true
         schema:
-          $ref: '#/definitions/models.Company'
+          $ref: '#/definitions/models.CompanyCreateRequest'
       - description: Bearer token
         in: header
         name: Authorization
@@ -195,7 +214,7 @@ paths:
         "201":
           description: Company created successfully
           schema:
-            $ref: '#/definitions/models.Company'
+            $ref: '#/definitions/models.CompanyResponse'
         "400":
           description: Invalid request body or validation error
           schema:
@@ -262,6 +281,11 @@ paths:
       - application/json
       description: Get detailed information about a company by its ID
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Company ID
         format: uuid
         in: path
@@ -274,7 +298,7 @@ paths:
         "200":
           description: Company found
           schema:
-            $ref: '#/definitions/models.Company'
+            $ref: '#/definitions/models.CompanyResponse'
         "400":
           description: Invalid company ID
           schema:
@@ -311,7 +335,7 @@ paths:
         "200":
           description: Company updated successfully
           schema:
-            $ref: '#/definitions/models.Company'
+            $ref: '#/definitions/models.CompanyUpdateRequest'
         "400":
           description: Invalid request body or validation error
           schema:

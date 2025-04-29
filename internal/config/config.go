@@ -38,7 +38,7 @@ func Load() (*Config, error) {
 		return nil, errors.New("JWT_EXPIRATION_HOURS must be a valid integer")
 	}
 	if jwtExpiration == 0 {
-
+		jwtExpiration = 24
 	}
 
 	kafkaBrokersStr := utils.GetEnv("KAFKA_BROKERS", "localhost:9092")

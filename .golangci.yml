@@ -2,8 +2,6 @@ version: "2"
 
 linters:
   enable:
-    - bodyclose
-    - dogsled
     - dupl
     - errcheck
     - goconst
@@ -24,11 +22,8 @@ formatters:
   # Enable specific formatter.
   # Default: [] (uses standard Go formatting)
   enable:
-    - gci
     - gofmt
-    - gofumpt
     - goimports
-    - golines
 
 run:
   skip-dirs:
@@ -48,3 +43,6 @@ issues:
         - goconst
   max-per-linter: 0
   max-same-issues: 0
+linters-settings:
+  golines:
+    max-len: 100

@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+
 	"xm-exercise/pkg/models"
 )
 

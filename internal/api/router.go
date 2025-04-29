@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
+
 	"xm-exercise/internal/api/handlers"
 	appMiddleware "xm-exercise/internal/api/middleware"
 	"xm-exercise/internal/auth"
@@ -54,6 +55,8 @@ func NewRouter(database *db.Database, producer *events.KafkaProducer, cfg *confi
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
+		// nolint:errcheck
+		// reason: The response is simple and a failure is unlikely to be recoverable.
 		w.Write([]byte("OK"))
 	})
 

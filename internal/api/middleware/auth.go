@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"go.uber.org/zap"
+
 	"xm-exercise/internal/auth"
 	"xm-exercise/internal/logger"
 )

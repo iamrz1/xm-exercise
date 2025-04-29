@@ -13,6 +13,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
+
 	"xm-exercise/internal/api"
 	"xm-exercise/internal/config"
 	"xm-exercise/internal/db"
@@ -56,6 +57,7 @@ func main() {
 	if err := logger.Init(logLevel, isDev); err != nil {
 		log.Fatalf("Failed to initialize logger: %v", err)
 	}
+	//nolint:errcheck //Flushing errors are typically unrecoverable during shutdown
 	defer logger.Sync()
 
 	cfg, err := config.Load()
@@ -67,10 +69,12 @@ func main() {
 	if err != nil {
 		logger.Fatal("Failed to connect to database", zap.Error(err))
 	}
+	//nolint:errcheck // Shutdown errors are typically unrecoverable.
 	defer database.Close()
 	logger.Info("Database connected", zap.String("dialect", cfg.DatabaseDialect))
 
 	producer := events.NewKafkaProducer(cfg.KafkaBrokers)
+	//nolint:errcheck // Shutdown errors are typically unrecoverable.
 	defer producer.Close()
 	logger.Info("Kafka producer initialized", zap.Strings("brokers", cfg.KafkaBrokers))
 

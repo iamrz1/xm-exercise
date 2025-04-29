@@ -8,11 +8,11 @@ import (
 // CompanyCreateRequest represents a company to be created
 // @Description Contains details to successfully create a Company
 type CompanyCreateRequest struct {
-	Name          string      `json:"name" example:"Acme Corp"`
+	Name          string      `json:"name"          example:"Acme Corp"`
 	Description   *string     `json:"description,omitempty" example:"Leading provider of widgets"`
 	EmployeeCount int         `json:"employee_count" example:"42"`
-	Registered    *bool       `json:"registered" example:"true"`
-	Type          CompanyType `json:"type" example:"Corporations"`
+	Registered    *bool       `json:"registered"    example:"true"`
+	Type          CompanyType `json:"type"          example:"Corporations"`
 }
 
 // Validate validates company fields
@@ -47,11 +47,11 @@ func (c *CompanyCreateRequest) Validate() error {
 }
 
 type CompanyUpdateRequest struct {
-	Name          *string     `json:"name" example:"Acme Corp"`
+	Name          *string     `json:"name"          example:"Acme Corp"`
 	Description   *string     `json:"description,omitempty" example:"Leading provider of widgets"`
 	EmployeeCount *int        `json:"employee_count" example:"42"`
-	Registered    *bool       `json:"registered" example:"true"`
-	Type          CompanyType `json:"type" example:"Corporations"`
+	Registered    *bool       `json:"registered"    example:"true"`
+	Type          CompanyType `json:"type"          example:"Corporations"`
 }
 
 // Validate validates company fields
@@ -82,12 +82,12 @@ func (c *CompanyUpdateRequest) Validate() error {
 }
 
 type CompanyResponse struct {
-	ID            string      `json:"id" example:"df45-adf32.....e-358dc"`
-	Name          string      `json:"name" example:"Acme Corp"`
-	Description   *string     `json:"description" example:"Leading provider of widgets"`
+	ID            string      `json:"id"            example:"df45-adf32.....e-358dc"`
+	Name          string      `json:"name"          example:"Acme Corp"`
+	Description   *string     `json:"description"   example:"Leading provider of widgets"`
 	EmployeeCount int         `json:"employee_count" example:"42"`
-	Registered    *bool       `json:"registered" example:"true"`
-	Type          CompanyType `json:"type" example:"Corporations"`
-	CreatedAt     time.Time   `json:"created_at" example:"05-04-2013"`
-	UpdatedAt     time.Time   `json:"updated_at" example:"05-04-2013"`
+	Registered    *bool       `json:"registered"    example:"true"`
+	Type          CompanyType `json:"type"          example:"Corporations"`
+	CreatedAt     time.Time   `json:"created_at"    example:"05-04-2013"`
+	UpdatedAt     time.Time   `json:"updated_at"    example:"05-04-2013"`
 }

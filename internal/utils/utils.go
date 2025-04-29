@@ -17,11 +17,6 @@ func GetEnv(key, defaultValue string) string {
 // IsValidEmail returns true if the input is a valid email address, returns false otherwise
 func IsValidEmail(email string) bool {
 	const emailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-
-	regex, err := regexp.Compile(emailRegex)
-	if err != nil {
-		return false
-	}
-
+	regex := regexp.MustCompile(emailRegex)
 	return regex.MatchString(email)
 }
