@@ -14,6 +14,10 @@ A production-ready RESTful microservice for managing company information.
 - Clean architecture design
 - Structured logging with Zap
 - API Documentation with Swagger
+- Unit tests
+- Integration tests
+- Lint (golangci-lint)
+- `.env` as the config file
 
 ## Requirements
 
@@ -49,6 +53,10 @@ Run the following to build a new image if any changes is made to the source code
    ```
    make down
    ```
+7. Cleanup leftover resources:
+   ```
+   make cleanup
+   ```
 
 ### Local Development
 
@@ -57,7 +65,7 @@ Run the following to build a new image if any changes is made to the source code
    make dep
    ```
 
-2. Create a `.env` file with the following content:
+2. Create a `.env` file with the following content to configure the app:
    ```
    PORT=8080
    APP_ENV=dev
@@ -111,4 +119,39 @@ in docker based implementation.
 
 ## Testing
 
-Run unit tests with: 
+### Run unit tests with:
+   ```
+   make test
+   ```
+
+### Running integration test:
+
+#### Docker Compose
+1. Run the app and integration test using the `docker-compose-e2e.yml` file.
+It will ensure all the dependencies and then run integration tests by itself .
+   ```
+   make integration-test
+   ```
+
+2. If any error is encountered error will show up in console. If there;s no error,
+`E2E Test Sequence Completed SUCCESSFULLY!` will show up.
+3. Exit the application:
+   ```
+   make down
+   ```
+4. Cleanup leftover resources:
+   ```
+   make cleanup
+   ```
+
+#### Locally
+
+1. Ensure all the dependencies are in place (database, kafka)
+2. Set `APP_ENV` to `int`
+3. Run the application:
+   ```
+   make run
+   ```
+4. If any error is encountered error will show up in console. If there;s no error,
+   `E2E Test Sequence Completed SUCCESSFULLY!` will show up.
+5. Press `crtl+c` to exit

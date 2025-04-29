@@ -21,8 +21,8 @@ down:
 cleanup:
 	@echo "Removing related containers"
 	@docker ps -a | grep "xm-exercise" | awk '{print $1}' | xargs docker rm -f -
-	@echo "Removing leftover images"
-	@docker images -a | grep "xm-exercise" | awk '{print $3}' | xargs docker rmi -f
+	@echo "Removing leftover volumes"
+	@docker system prune --volumes
 
 build:
 	@echo "Building docker image"
@@ -35,3 +35,7 @@ doc: dep
 
 test:
 	@go test ./... -v -short
+
+integration-test:
+	@echo "Running integration Tests"
+	@docker-compose -f docker-compose-e2e.yml up

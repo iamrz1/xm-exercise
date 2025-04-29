@@ -14,6 +14,7 @@ import (
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 
+	"xm-exercise/integration"
 	"xm-exercise/internal/api"
 	"xm-exercise/internal/config"
 	"xm-exercise/internal/db"
@@ -38,9 +39,10 @@ import (
 // @description                 Type "Bearer" followed by a space and the JWT token.
 
 const (
-	EnvLogLevel = "LOG_LEVEL"
-	EnvAppEnv   = "APP_ENV"
-	DevEnv      = "dev"
+	EnvLogLevel        = "LOG_LEVEL"
+	EnvAppEnv          = "APP_ENV"
+	DevEnv             = "dev"
+	IntegrationTestEnv = "int"
 )
 
 func main() {
@@ -94,6 +96,10 @@ func main() {
 			logger.Fatal("Failed to start server", zap.Error(err))
 		}
 	}()
+
+	if strings.ToLower(utils.GetEnv(EnvAppEnv, DevEnv)) == IntegrationTestEnv {
+		integration.RunE2ETest()
+	}
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

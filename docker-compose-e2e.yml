@@ -15,8 +15,8 @@ services:
     environment:
       - PORT=8080
       - E2E_BASE_URL=localhost:8080
-      - APP_ENV=e2e
-      - LOG_LEVEL=debug
+      - APP_ENV=int
+      - LOG_LEVEL=warn
       - DATABASE_DIALECT=postgres
       - DATABASE_URL=postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
       - JWT_SECRET=your-super-secret-key-change-in-production

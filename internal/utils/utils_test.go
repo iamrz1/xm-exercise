@@ -40,8 +40,6 @@ func TestExtractIDFromPath(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create a new http.Request for each test case.  Crucially, use
-			// a non-nil URL, and set the Path.
 			req, err := http.NewRequest("GET", "http://example.com"+tc.path, nil)
 			if err != nil {
 				t.Fatalf("failed to create request: %v", err)
