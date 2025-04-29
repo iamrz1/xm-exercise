@@ -1,6 +1,6 @@
 # Company Management Microservice
 
-A production-ready RESTful microservice for managing company information.
+A production-ready(ish) RESTful microservice for managing company information.
 
 ## Features
 
