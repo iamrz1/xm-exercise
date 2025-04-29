@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"net/http"
 	"os"
 	"regexp"
 )
@@ -19,4 +20,13 @@ func IsValidEmail(email string) bool {
 	const emailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	regex := regexp.MustCompile(emailRegex)
 	return regex.MatchString(email)
+}
+
+func ExtractIDFromPath(r *http.Request) string {
+	re := regexp.MustCompile(`([^/]+)$`)
+	match := re.FindStringSubmatch(r.URL.Path)
+	if len(match) > 1 {
+		return match[1]
+	}
+	return ""
 }

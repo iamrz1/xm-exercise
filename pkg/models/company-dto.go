@@ -56,10 +56,6 @@ type CompanyUpdateRequest struct {
 
 // Validate validates company fields
 func (c *CompanyUpdateRequest) Validate() error {
-	if c.Name != nil && len(*c.Name) == 0 {
-		return errors.New("name is required")
-	}
-
 	if c.Name != nil && len(*c.Name) > 15 {
 		return errors.New("name must be 15 characters or less")
 	}
@@ -68,14 +64,16 @@ func (c *CompanyUpdateRequest) Validate() error {
 		return errors.New("description must be 3000 characters or less")
 	}
 
-	if c.Name != nil && *c.EmployeeCount <= 0 {
+	if c.EmployeeCount != nil && *c.EmployeeCount <= 0 {
 		return errors.New("employee count must be positive")
 	}
 
-	switch c.Type {
-	case TypeCorporation, TypeNonProfit, TypeCooperative, TypeSoleProprietor:
-	default:
-		return errors.New("invalid company type")
+	if c.Type != "" {
+		switch c.Type {
+		case TypeCorporation, TypeNonProfit, TypeCooperative, TypeSoleProprietor:
+		default:
+			return errors.New("invalid company type")
+		}
 	}
 
 	return nil

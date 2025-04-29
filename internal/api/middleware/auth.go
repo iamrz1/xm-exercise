@@ -56,11 +56,16 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 
 // GetUserID extracts user ID from context
 func GetUserID(ctx context.Context) (string, bool) {
-	// Fixme: Cast the context.Value result to interface{} before type assertion
+	// fixme: Cast the context.Value result to interface{} before type assertion
 	value := ctx.Value(logger.UserIDKey)
 	if value == nil {
 		return "", false
 	}
 	userID, ok := value.(string)
 	return userID, ok
+}
+
+// SetUserID puts user ID in context
+func SetUserID(ctx context.Context, userID string) context.Context {
+	return context.WithValue(ctx, logger.UserIDKey, userID)
 }

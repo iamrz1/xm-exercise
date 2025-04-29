@@ -24,6 +24,13 @@ type Event struct {
 	Data      interface{} `json:"data"`
 }
 
+// KafkaProducerInterface defines the interface for Kafka producer operations
+type KafkaProducerInterface interface {
+	PublishCompanyCreated(company models.Company) error
+	PublishCompanyUpdated(company *models.Company) error
+	PublishCompanyDeleted(companyID string) error
+}
+
 // KafkaProducer handles publishing events to Kafka
 type KafkaProducer struct {
 	writer *kafka.Writer

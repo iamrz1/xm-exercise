@@ -34,4 +34,4 @@ doc: dep
 	@./scripts/swagger.sh
 
 test:
-	@go test ./..
+	@go test ./... -v -short

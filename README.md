@@ -18,8 +18,9 @@ A production-ready RESTful microservice for managing company information.
 ## Requirements
 
 - Docker and Docker Compose
-- Go 1.21+ (for local development)
 - make
+- Go 1.23+ (for local development)
+- golangci-lint (for local development)
 
 ## Running the Application
 
@@ -38,14 +39,13 @@ A production-ready RESTful microservice for managing company information.
 
 3. Once an image fo this app is built, a new image is not built from code again.
 Run the following to build a new image if any changes is made to the source code:
-4. Run the application:
    ```
    make build
    ```
 
-5. The API will be available at `http://localhost:8080`
-6. Swagger documentation is available at `http://localhost:8080/swagger/index.html`
-7. Exit the application:
+4. The API will be available at `http://localhost:8080`
+5. Swagger documentation is available at `http://localhost:8080/swagger/index.html`
+6. Exit the application:
    ```
    make down
    ```
@@ -104,6 +104,11 @@ All company endpoints require JWT authentication.
 - **PATCH /api/v1/companies/{id}** - Update company
 - **DELETE /api/v1/companies/{id}** - Delete company
 
+## Linting
+Use `golangci-lint run` to check any linter or formatter related issue.
+`golangci-lint` is also baked into the `Dockerfile` for seamless integration
+in docker based implementation.
+
 ## Testing
 
-Run the tests with: 
+Run unit tests with: 

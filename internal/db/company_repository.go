@@ -8,6 +8,15 @@ import (
 	"xm-exercise/pkg/models"
 )
 
+// CompanyRepositoryInterface defines the interface for company database operations
+type CompanyRepositoryInterface interface {
+	Create(company *models.Company) error
+	GetByID(id string) (*models.Company, error)
+	Update(company *models.Company) error
+	Delete(id string) error
+	ExistsByName(name string) (bool, error)
+}
+
 // CompanyRepository handles database operations for companies
 type CompanyRepository struct {
 	db *Database

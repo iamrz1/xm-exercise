@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"xm-exercise/internal/utils"
 
 	"xm-exercise/internal/api/middleware"
 	"xm-exercise/internal/db"
@@ -18,12 +18,15 @@ import (
 
 // CompanyHandler handles company-related requests
 type CompanyHandler struct {
-	companyRepo *db.CompanyRepository
-	producer    *events.KafkaProducer
+	companyRepo db.CompanyRepositoryInterface
+	producer    events.KafkaProducerInterface
 }
 
 // NewCompanyHandler creates a new company handler
-func NewCompanyHandler(companyRepo *db.CompanyRepository, producer *events.KafkaProducer) *CompanyHandler {
+func NewCompanyHandler(
+	companyRepo db.CompanyRepositoryInterface,
+	producer events.KafkaProducerInterface,
+) *CompanyHandler {
 	return &CompanyHandler{
 		companyRepo: companyRepo,
 		producer:    producer,
@@ -108,19 +111,17 @@ func (h *CompanyHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go func() {
-		if err := h.producer.PublishCompanyCreated(company); err != nil {
-			log.Error("Failed to publish company created event",
-				zap.Error(err),
-				zap.String("company_name", company.Name),
-			)
-		} else {
-			log.Info("Company created event published",
-				zap.String("company_id", company.ID),
-				zap.String("company_name", company.Name),
-			)
-		}
-	}()
+	if err := h.producer.PublishCompanyCreated(company); err != nil {
+		log.Error("Failed to publish company created event",
+			zap.Error(err),
+			zap.String("company_name", company.Name),
+		)
+	} else {
+		log.Info("Company created event published",
+			zap.String("company_id", company.ID),
+			zap.String("company_name", company.Name),
+		)
+	}
 
 	log.Info("Company created",
 		zap.String("company_id", company.ID),
@@ -154,7 +155,7 @@ func (h *CompanyHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *CompanyHandler) Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.WithContext(ctx)
-	id := chi.URLParam(r, "id")
+	id := utils.ExtractIDFromPath(r)
 	company, err := h.companyRepo.GetByID(id)
 	if err != nil {
 		http.Error(w, "Company not found", http.StatusNotFound)
@@ -195,7 +196,7 @@ func (h *CompanyHandler) Patch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id := chi.URLParam(r, "id")
+	id := utils.ExtractIDFromPath(r)
 	existingCompany, err := h.companyRepo.GetByID(id)
 	if err != nil {
 		http.Error(w, "Company not found", http.StatusNotFound)
@@ -215,6 +216,18 @@ func (h *CompanyHandler) Patch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if updates.Name != nil && *updates.Name != existingCompany.Name {
+		exists, err := h.companyRepo.ExistsByName(*updates.Name)
+		if err != nil {
+			http.Error(w, "Error checking name uniqueness", http.StatusInternalServerError)
+			return
+		}
+		if exists {
+			http.Error(w, "Company name already exists", http.StatusConflict)
+			return
+		}
+	}
+
 	if updates.Name != nil {
 		existingCompany.Name = *updates.Name
 	}
@@ -232,36 +245,22 @@ func (h *CompanyHandler) Patch(w http.ResponseWriter, r *http.Request) {
 	}
 	existingCompany.UpdatedAt = time.Now().UTC()
 
-	if updates.Name != nil && *updates.Name != existingCompany.Name {
-		exists, err := h.companyRepo.ExistsByName(existingCompany.Name)
-		if err != nil {
-			http.Error(w, "Error checking name uniqueness", http.StatusInternalServerError)
-			return
-		}
-		if exists {
-			http.Error(w, "Company name already exists", http.StatusConflict)
-			return
-		}
-	}
-
 	if err := h.companyRepo.Update(existingCompany); err != nil {
 		http.Error(w, "Error updating company", http.StatusInternalServerError)
 		return
 	}
 
-	go func() {
-		if err := h.producer.PublishCompanyUpdated(existingCompany); err != nil {
-			log.Error("Failed to publish company updated event",
-				zap.Error(err),
-				zap.String("company_name", existingCompany.Name),
-			)
-		} else {
-			log.Info("Company updated event published",
-				zap.String("company_id", existingCompany.ID),
-				zap.String("company_name", existingCompany.Name),
-			)
-		}
-	}()
+	if err := h.producer.PublishCompanyUpdated(existingCompany); err != nil {
+		log.Error("Failed to publish company updated event",
+			zap.Error(err),
+			zap.String("company_name", existingCompany.Name),
+		)
+	} else {
+		log.Info("Company updated event published",
+			zap.String("company_id", existingCompany.ID),
+			zap.String("company_name", existingCompany.Name),
+		)
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(w).Encode(existingCompany.ToResponse()); err != nil {
@@ -294,7 +293,7 @@ func (h *CompanyHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id := chi.URLParam(r, "id")
+	id := utils.ExtractIDFromPath(r)
 
 	existingCompany, err := h.companyRepo.GetByID(id)
 	if err != nil {
@@ -307,19 +306,17 @@ func (h *CompanyHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go func() {
-		if err := h.producer.PublishCompanyUpdated(existingCompany); err != nil {
-			log.Error("Failed to publish company deleted event",
-				zap.Error(err),
-				zap.String("company_name", existingCompany.Name),
-			)
-		} else {
-			log.Info("Company deleted event published",
-				zap.String("company_id", existingCompany.ID),
-				zap.String("company_name", existingCompany.Name),
-			)
-		}
-	}()
+	if err := h.producer.PublishCompanyDeleted(id); err != nil {
+		log.Error("Failed to publish company deleted event",
+			zap.Error(err),
+			zap.String("company_name", existingCompany.Name),
+		)
+	} else {
+		log.Info("Company deleted event published",
+			zap.String("company_id", existingCompany.ID),
+			zap.String("company_name", existingCompany.Name),
+		)
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(w).Encode(existingCompany.ToResponse()); err != nil {
